@@ -41,13 +41,10 @@ impl SingleRequest<NewPackage, NewPackage> for NewPackageRequest {
     }
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Debug)]
 pub struct PackageQuery {
-    #[serde(skip_serializing_if = "Option::is_none")]
     distribution: Option<String>,
-    #[serde(skip_serializing_if = "Option::is_none")]
     name: Option<String>,
-
     items_per_page: u32,
 }
 
@@ -63,7 +60,7 @@ impl PackageQuery {
 
 impl Default for PackageQuery {
     fn default() -> Self {
-        PackageQuery::new()
+        Self::new()
     }
 }
 
@@ -79,7 +76,7 @@ pub struct PackagePageQuery<'a> {
 }
 
 #[derive(Debug, Deserialize)]
-pub struct PackageListPage {
+pub struct PackagePage {
     items: Vec<Package>,
 
     #[allow(unused)]
@@ -96,7 +93,7 @@ pub struct Package {
     pub project: String,
 }
 
-impl<'a> SingleRequest<PackageListPage, Vec<Package>> for PackagePageQuery<'a> {
+impl<'a> SingleRequest<PackagePage, Vec<Package>> for PackagePageQuery<'a> {
     fn method(&self) -> RequestMethod {
         RequestMethod::GET
     }
@@ -109,30 +106,22 @@ impl<'a> SingleRequest<PackageListPage, Vec<Package>> for PackagePageQuery<'a> {
         Ok(None)
     }
 
-    fn parse(&self, string: &str) -> Result<PackageListPage, QueryError> {
+    fn parse(&self, string: &str) -> Result<PackagePage, QueryError> {
         Ok(serde_json::from_str(string)?)
     }
 
-    fn extract(&self, page: PackageListPage) -> Vec<Package> {
+    fn extract(&self, page: PackagePage) -> Vec<Package> {
         page.items
     }
 }
 
-impl Pagination for PackageListPage {
+impl Pagination for PackagePage {
     fn pages(&self) -> u32 {
-        // https://doc.rust-lang.org/std/primitive.u32.html#method.div_ceil
-        let div = self.total_items / self.items_per_page;
-        let rem = self.total_items % self.items_per_page;
-
-        if rem == 0 {
-            div
-        } else {
-            div + 1
-        }
+        super::num_pages(self.total_items, self.items_per_page)
     }
 }
 
-impl<'a> PaginatedRequest<'a, PackageListPage, Vec<Package>, PackagePageQuery<'a>> for PackageQuery {
+impl<'a> PaginatedRequest<'a, PackagePage, Vec<Package>, PackagePageQuery<'a>> for PackageQuery {
     fn page_request(&'a self, page: u32) -> PackagePageQuery<'a> {
         PackagePageQuery {
             distribution: self.distribution.as_ref(),

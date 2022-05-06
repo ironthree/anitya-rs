@@ -1,6 +1,6 @@
 use std::time::Duration;
 
-use anitya::v2::PackageQuery;
+use anitya::v2::ProjectQuery;
 use anitya::ClientBuilder;
 
 #[tokio::test]
@@ -12,6 +12,6 @@ async fn query() {
         .build()
         .unwrap();
 
-    let query = PackageQuery::new();
+    let query = ProjectQuery::new();
     let _result = client.paginated_request(&query).await.unwrap();
 }

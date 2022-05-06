@@ -3,7 +3,7 @@
 #![warn(missing_debug_implementations)]
 
 mod client;
-pub use client::AnityaClientBuilder;
+pub use client::{AnityaClient, ClientBuildError, ClientBuilder};
 
 mod errors;
 pub use errors::QueryError;
