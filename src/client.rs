@@ -1,22 +1,43 @@
-use reqwest::header::{HeaderValue, USER_AGENT};
-use reqwest::{header::HeaderMap, Client};
+use reqwest::header::{HeaderValue, AUTHORIZATION, USER_AGENT};
+use reqwest::{header::HeaderMap, header::InvalidHeaderValue, Client};
 use serde::de::DeserializeOwned;
+use thiserror::Error;
 use url::Url;
 
 use crate::errors::QueryError;
-use crate::request::SingleRequest;
+use crate::request::{RequestMethod, SingleRequest};
+
+#[derive(Debug, Error)]
+pub enum BuilderError {
+    #[error("Failed to build client for invalid base URL: {}", error)]
+    InvalidURL {
+        #[from]
+        error: url::ParseError,
+    },
+    #[error("Failed to build client with invalid API token: {}", error)]
+    InvalidToken {
+        #[from]
+        error: InvalidHeaderValue,
+    },
+}
 
 #[derive(Debug)]
 pub struct AnityaClientBuilder<'a> {
     url: &'a str,
+    token: Option<&'a str>,
 }
 
 impl<'a> AnityaClientBuilder<'a> {
     pub fn new(url: &'a str) -> Self {
-        AnityaClientBuilder { url }
+        AnityaClientBuilder { url, token: None }
     }
 
-    pub fn build(self) -> Result<AnityaClient, url::ParseError> {
+    pub fn with_token(mut self, token: &'a str) -> Self {
+        self.token = Some(token);
+        self
+    }
+
+    pub fn build(self) -> Result<AnityaClient, BuilderError> {
         let url = Url::parse(self.url)?;
         let user_agent = "anitya-rs";
 
@@ -29,7 +50,19 @@ impl<'a> AnityaClientBuilder<'a> {
             .build()
             .expect("Failed to initialize the network stack.");
 
-        Ok(AnityaClient { url, session })
+        let auth_header = if let Some(token) = self.token {
+            let mut value = HeaderValue::from_str(token)?;
+            value.set_sensitive(true);
+            Some(value)
+        } else {
+            None
+        };
+
+        Ok(AnityaClient {
+            url,
+            session,
+            auth_header,
+        })
     }
 }
 
@@ -37,6 +70,7 @@ impl<'a> AnityaClientBuilder<'a> {
 pub struct AnityaClient {
     url: Url,
     session: Client,
+    auth_header: Option<HeaderValue>,
 }
 
 impl AnityaClient {
@@ -50,10 +84,27 @@ impl AnityaClient {
             .join(&request.path()?)
             .map_err(|e| QueryError::UrlParsingError { error: e })?;
 
-        let response = match request.body()? {
-            Some(body) => self.session.get(url).body(body).send().await,
-            None => self.session.get(url).send().await,
-        }?;
+        let response = match request.method() {
+            RequestMethod::GET => match request.body()? {
+                Some(body) => self.session.get(url).body(body).send().await?,
+                None => self.session.get(url).send().await?,
+            },
+            RequestMethod::POST => {
+                let auth_header = if let Some(ref token) = self.auth_header {
+                    token
+                } else {
+                    return Err(QueryError::Unauthorized);
+                };
+
+                let mut headers = HeaderMap::new();
+                headers.insert(AUTHORIZATION, auth_header.clone());
+
+                match request.body()? {
+                    Some(body) => self.session.post(url).body(body).send().await?,
+                    None => self.session.post(url).send().await?,
+                }
+            },
+        };
 
         let status = response.status();
 

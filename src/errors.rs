@@ -1,11 +1,12 @@
 #[derive(Debug, thiserror::Error)]
 pub enum QueryError {
-    /// failure to deserialize a JSON response
+    /// failure to (de)serialize a JSON value
     ///
     /// If this error occurs, it is considered to be a bug in this crate.
     #[error("Failed to deserialize JSON response: {error}")]
-    DeserializationError {
+    DeSerializationError {
         /// error returned by [`serde_json`]
+        #[from]
         error: serde_json::Error,
     },
     /// request failed due to networking issues
@@ -15,14 +16,9 @@ pub enum QueryError {
         #[from]
         error: reqwest::Error,
     },
-    /// failure to serialize JSON request data
-    ///
-    /// If this error occurs, it is considered to be a bug in this crate.
-    #[error("Failed to serialize POST request data: {error}")]
-    SerializationError {
-        /// error returned by [`serde_json`]
-        error: serde_json::Error,
-    },
+    /// failure caused by an attempt to call authenticated API without token
+    #[error("Unauthorized request: no API token supplied")]
+    Unauthorized,
     /// failure to serialize x-www-urlencoded request string
     #[error("Failed to construct `x-www-urlencoded` query string: {error}")]
     UrlEncodedError {

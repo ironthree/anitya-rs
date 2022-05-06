@@ -19,14 +19,14 @@ where
     fn extract(&self, page: P) -> T;
 }
 
-pub trait PaginatedRequest<P, T, S>
+pub trait PaginatedRequest<'a, P, T, S>
 where
     P: Pagination,
     T: DeserializeOwned,
-    S: SingleRequest<P, T>,
+    S: SingleRequest<P, T> + 'a,
 {
-    fn page_request(&self, page: u32) -> S;
-    fn callback(&self, page: u32, pages: u32);
+    fn page_request(&'a self, page: u32) -> S;
+    fn callback(&'a self, page: u32, pages: u32);
 }
 
 pub trait Pagination {

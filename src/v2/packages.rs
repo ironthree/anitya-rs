@@ -5,7 +5,7 @@ use crate::request::{PaginatedRequest, Pagination, RequestMethod, SingleRequest}
 
 const DEFAULT_PER_PAGE: u32 = 25;
 
-#[derive(Debug, Default, Serialize)]
+#[derive(Debug, Serialize)]
 pub struct NewPackageRequest {
     distribution: String,
     package_name: String,
@@ -29,15 +29,11 @@ impl SingleRequest<NewPackage, NewPackage> for NewPackageRequest {
     }
 
     fn body(&self) -> Result<Option<String>, QueryError> {
-        Ok(Some(
-            serde_json::to_string_pretty(self).map_err(|error| QueryError::SerializationError { error })?,
-        ))
+        Ok(Some(serde_json::to_string_pretty(self)?))
     }
 
     fn parse(&self, string: &str) -> Result<NewPackage, QueryError> {
-        let new_package: NewPackage =
-            serde_json::from_str(string).map_err(|error| QueryError::SerializationError { error })?;
-        Ok(new_package)
+        Ok(serde_json::from_str(string)?)
     }
 
     fn extract(&self, page: NewPackage) -> NewPackage {
@@ -65,12 +61,18 @@ impl PackageQuery {
     }
 }
 
+impl Default for PackageQuery {
+    fn default() -> Self {
+        PackageQuery::new()
+    }
+}
+
 #[derive(Debug, Serialize)]
-pub struct PackagePageQuery {
+pub struct PackagePageQuery<'a> {
     #[serde(skip_serializing_if = "Option::is_none")]
-    distribution: Option<String>,
+    distribution: Option<&'a String>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    name: Option<String>,
+    name: Option<&'a String>,
 
     page: u32,
     items_per_page: u32,
@@ -80,7 +82,8 @@ pub struct PackagePageQuery {
 pub struct PackageListPage {
     items: Vec<Package>,
 
-    page: i32,
+    #[allow(unused)]
+    page: u32,
     items_per_page: u32,
     total_items: u32,
 }
@@ -93,7 +96,7 @@ pub struct Package {
     pub project: String,
 }
 
-impl SingleRequest<PackageListPage, Vec<Package>> for PackagePageQuery {
+impl<'a> SingleRequest<PackageListPage, Vec<Package>> for PackagePageQuery<'a> {
     fn method(&self) -> RequestMethod {
         RequestMethod::GET
     }
@@ -107,9 +110,7 @@ impl SingleRequest<PackageListPage, Vec<Package>> for PackagePageQuery {
     }
 
     fn parse(&self, string: &str) -> Result<PackageListPage, QueryError> {
-        let package_page: PackageListPage =
-            serde_json::from_str(string).map_err(|error| QueryError::DeserializationError { error })?;
-        Ok(package_page)
+        Ok(serde_json::from_str(string)?)
     }
 
     fn extract(&self, page: PackageListPage) -> Vec<Package> {
@@ -121,7 +122,7 @@ impl Pagination for PackageListPage {
     fn pages(&self) -> u32 {
         // https://doc.rust-lang.org/std/primitive.u32.html#method.div_ceil
         let div = self.total_items / self.items_per_page;
-        let rem = self.total_items - div * self.items_per_page;
+        let rem = self.total_items % self.items_per_page;
 
         if rem == 0 {
             div
@@ -131,17 +132,17 @@ impl Pagination for PackageListPage {
     }
 }
 
-impl PaginatedRequest<PackageListPage, Vec<Package>, PackagePageQuery> for PackageQuery {
-    fn page_request(&self, page: u32) -> PackagePageQuery {
+impl<'a> PaginatedRequest<'a, PackageListPage, Vec<Package>, PackagePageQuery<'a>> for PackageQuery {
+    fn page_request(&'a self, page: u32) -> PackagePageQuery<'a> {
         PackagePageQuery {
-            distribution: self.distribution.clone(),
-            name: self.name.clone(),
+            distribution: self.distribution.as_ref(),
+            name: self.name.as_ref(),
             page,
             items_per_page: self.items_per_page,
         }
     }
 
-    fn callback(&self, page: u32, pages: u32) {
-        eprintln!("Callback: Page {} of {}", page, pages);
+    fn callback(&'a self, page: u32, pages: u32) {
+        log::debug!("Callback: Page {} of {}", page, pages);
     }
 }

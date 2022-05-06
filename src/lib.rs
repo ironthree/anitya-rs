@@ -1,5 +1,7 @@
-#[warn(missing_debug_implementations)]
 // https://release-monitoring.org/static/docs/api.html
+
+#![warn(missing_debug_implementations)]
+
 mod client;
 pub use client::AnityaClientBuilder;
 
