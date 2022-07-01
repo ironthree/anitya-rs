@@ -165,6 +165,8 @@ impl AnityaClient {
         T: DeserializeOwned,
     {
         let mut results: Vec<T> = Vec::new();
+
+        // initialize progress callback with "zero progress"
         request.callback(0, 1);
 
         let first_request = request.page_request(1);
@@ -173,18 +175,20 @@ impl AnityaClient {
         let mut page = 2u32;
         let mut pages = first_page.pages();
 
+        // update progress callback with actual total pages
         request.callback(1, pages);
+
         results.extend(first_request.extract(first_page));
 
         while page <= pages {
             let page_request = request.page_request(page);
-
             let next_page = self.page_request(&page_request).await?;
+
+            request.callback(page, pages);
 
             page += 1;
             pages = next_page.pages();
 
-            request.callback(page, pages);
             results.extend(page_request.extract(next_page));
 
             if let Some(delay) = self.delay {
