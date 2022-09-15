@@ -10,8 +10,8 @@ const DEFAULT_PER_PAGE: u32 = 25;
 pub struct NewPackageRequest {
     distribution: String,
     package_name: String,
-    project_ecosystem: String,
     project_name: String,
+    project_ecosystem: String,
 }
 
 impl NewPackageRequest {
@@ -128,9 +128,10 @@ pub struct PackagePage {
 #[derive(Debug, Deserialize)]
 pub struct Package {
     pub distribution: String,
-    pub ecosystem: String,
     pub name: String,
     pub project: String,
+    pub ecosystem: String,
+    pub version: String,
 }
 
 impl<'a> SingleRequest<PackagePage, Vec<Package>> for PackagePageQuery<'a> {
