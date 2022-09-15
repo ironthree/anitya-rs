@@ -4,26 +4,10 @@ use crate::errors::QueryError;
 use crate::request::{RequestMethod, SingleRequest};
 
 #[derive(Debug, Serialize)]
-#[serde(untagged)]
-pub enum FetchVersionsRequest {
-    ForId(FetchForId),
-    WithSearch(Box<FetchWithSearch>),
-}
-
-#[derive(Debug, Serialize)]
-pub struct FetchForId {
-    id: u32,
-}
-
-impl From<FetchForId> for FetchVersionsRequest {
-    fn from(value: FetchForId) -> Self {
-        Self::ForId(value)
-    }
-}
-
-#[derive(Debug, Default, Serialize)]
-pub struct FetchWithSearch {
+pub struct ModifyProjectRequest {
     // search parameters for existing projects
+    #[serde(skip_serializing_if = "Option::is_none")]
+    id: Option<u32>,
     #[serde(skip_serializing_if = "Option::is_none")]
     name: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -54,33 +38,7 @@ pub struct FetchWithSearch {
     dry_run: Option<bool>,
 }
 
-impl From<FetchWithSearch> for FetchVersionsRequest {
-    fn from(value: FetchWithSearch) -> Self {
-        FetchVersionsRequest::WithSearch(Box::new(value))
-    }
-}
-
-impl FetchVersionsRequest {
-    pub fn for_id(id: u32) -> FetchForId {
-        FetchForId { id }
-    }
-
-    pub fn for_name(name: String) -> FetchWithSearch {
-        FetchWithSearch {
-            name: Some(name),
-            ..Default::default()
-        }
-    }
-
-    pub fn for_homepage(homepage: String) -> FetchWithSearch {
-        FetchWithSearch {
-            homepage: Some(homepage),
-            ..Default::default()
-        }
-    }
-}
-
-impl FetchWithSearch {
+impl ModifyProjectRequest {
     pub fn backend(mut self, backend: String) -> Self {
         self.backend = Some(backend);
         self
@@ -145,7 +103,7 @@ pub struct NewVersions {
     pub stable_versions: Vec<String>,
 }
 
-impl SingleRequest<NewVersions, NewVersions> for FetchVersionsRequest {
+impl SingleRequest<NewVersions, NewVersions> for ModifyProjectRequest {
     fn method(&self) -> RequestMethod {
         RequestMethod::POST
     }

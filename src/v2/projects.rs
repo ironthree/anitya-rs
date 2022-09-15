@@ -1,5 +1,6 @@
-use serde::{Deserialize, Serialize};
 use std::fmt::{Debug, Formatter};
+
+use serde::{Deserialize, Serialize};
 
 use crate::errors::QueryError;
 use crate::request::{PaginatedRequest, Pagination, RequestMethod, SingleRequest};
