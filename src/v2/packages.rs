@@ -14,8 +14,13 @@ pub struct NewPackageRequest {
 }
 
 impl NewPackageRequest {
-    pub fn new() -> Self {
-        todo!()
+    pub fn new(distribution: String, package_name: String, project_ecosystem: String, project_name: String) -> Self {
+        NewPackageRequest {
+            distribution,
+            package_name,
+            project_ecosystem,
+            project_name,
+        }
     }
 }
 
@@ -67,6 +72,23 @@ impl PackageQuery {
 impl Default for PackageQuery {
     fn default() -> Self {
         Self::new()
+    }
+}
+
+impl PackageQuery {
+    pub fn distribution(mut self, distribution: String) -> Self {
+        self.distribution = Some(distribution);
+        self
+    }
+
+    pub fn name(mut self, name: String) -> Self {
+        self.name = Some(name);
+        self
+    }
+
+    pub fn items_per_page(mut self, items_per_page: u32) -> Self {
+        self.items_per_page = items_per_page;
+        self
     }
 }
 

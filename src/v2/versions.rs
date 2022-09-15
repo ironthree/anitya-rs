@@ -16,7 +16,9 @@ pub struct FetchForId {
 }
 
 impl From<FetchForId> for FetchVersionsRequest {
-    fn from(_: FetchForId) -> Self { todo!() }
+    fn from(_: FetchForId) -> Self {
+        todo!()
+    }
 }
 
 #[derive(Debug, Default, Serialize)]
@@ -53,7 +55,9 @@ pub struct FetchWithSearch {
 }
 
 impl From<FetchWithSearch> for FetchVersionsRequest {
-    fn from(_: FetchWithSearch) -> Self { todo!() }
+    fn from(_: FetchWithSearch) -> Self {
+        todo!()
+    }
 }
 
 impl FetchVersionsRequest {
@@ -73,6 +77,63 @@ impl FetchVersionsRequest {
             homepage: Some(homepage),
             ..Default::default()
         }
+    }
+}
+
+impl FetchWithSearch {
+    pub fn backend(mut self, backend: String) -> Self {
+        self.backend = Some(backend);
+        self
+    }
+
+    pub fn version_url(mut self, version_url: String) -> Self {
+        self.version_url = Some(version_url);
+        self
+    }
+
+    pub fn version_scheme(mut self, version_scheme: String) -> Self {
+        self.version_scheme = Some(version_scheme);
+        self
+    }
+
+    pub fn version_pattern(mut self, version_pattern: String) -> Self {
+        self.version_pattern = Some(version_pattern);
+        self
+    }
+
+    pub fn version_prefix(mut self, version_prefix: String) -> Self {
+        self.version_prefix = Some(version_prefix);
+        self
+    }
+
+    pub fn pre_release_filter(mut self, pre_release_filter: String) -> Self {
+        self.pre_release_filter = Some(pre_release_filter);
+        self
+    }
+
+    pub fn version_filter(mut self, version_filter: String) -> Self {
+        self.version_filter = Some(version_filter);
+        self
+    }
+
+    pub fn regex(mut self, regex: String) -> Self {
+        self.regex = Some(regex);
+        self
+    }
+
+    pub fn insecure(mut self, insecure: bool) -> Self {
+        self.insecure = Some(insecure);
+        self
+    }
+
+    pub fn releases_only(mut self, releases_only: bool) -> Self {
+        self.releases_only = Some(releases_only);
+        self
+    }
+
+    pub fn dry_run(mut self, dry_run: bool) -> Self {
+        self.dry_run = Some(dry_run);
+        self
     }
 }
 

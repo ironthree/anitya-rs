@@ -24,8 +24,43 @@ pub struct NewProjectRequest {
 }
 
 impl NewProjectRequest {
-    pub fn new() -> Self {
-        todo!()
+    pub fn new(name: String, homepage: String, backend: String) -> Self {
+        NewProjectRequest {
+            name,
+            homepage,
+            backend,
+
+            version_url: None,
+            version_prefix: None,
+            regex: None,
+            insecure: None,
+            check_release: None,
+        }
+    }
+
+    pub fn version_url(mut self, version_url: String) -> Self {
+        self.version_url = Some(version_url);
+        self
+    }
+
+    pub fn version_prefix(mut self, version_prefix: String) -> Self {
+        self.version_prefix = Some(version_prefix);
+        self
+    }
+
+    pub fn regex(mut self, regex: String) -> Self {
+        self.regex = Some(regex);
+        self
+    }
+
+    pub fn insecure(mut self, insecure: bool) -> Self {
+        self.insecure = Some(insecure);
+        self
+    }
+
+    pub fn check_release(mut self, check_release: bool) -> Self {
+        self.check_release = Some(check_release);
+        self
     }
 }
 
@@ -86,6 +121,23 @@ impl ProjectQuery {
 impl Default for ProjectQuery {
     fn default() -> Self {
         Self::new()
+    }
+}
+
+impl ProjectQuery {
+    pub fn ecosystem(mut self, ecosystem: String) -> Self {
+        self.ecosystem = Some(ecosystem);
+        self
+    }
+
+    pub fn name(mut self, name: String) -> Self {
+        self.name = Some(name);
+        self
+    }
+
+    pub fn items_per_page(mut self, items_per_page: u32) -> Self {
+        self.items_per_page = items_per_page;
+        self
     }
 }
 
