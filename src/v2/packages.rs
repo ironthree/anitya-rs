@@ -1,4 +1,5 @@
 use serde::{Deserialize, Serialize};
+use std::fmt::{Debug, Formatter};
 
 use crate::errors::QueryError;
 use crate::request::{PaginatedRequest, Pagination, RequestMethod, SingleRequest};
@@ -52,11 +53,11 @@ impl SingleRequest<NewPackage, NewPackage> for NewPackageRequest {
     }
 }
 
-#[derive(Debug)]
 pub struct PackageQuery {
     distribution: Option<String>,
     name: Option<String>,
     items_per_page: u32,
+    callback: Option<Box<dyn Fn(u32, u32)>>,
 }
 
 impl PackageQuery {
@@ -65,7 +66,18 @@ impl PackageQuery {
             distribution: None,
             name: None,
             items_per_page: DEFAULT_PER_PAGE,
+            callback: None,
         }
+    }
+}
+
+impl Debug for PackageQuery {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("PackageQuery")
+            .field("distribution", &self.distribution)
+            .field("name", &self.name)
+            .field("items_per_page", &self.items_per_page)
+            .finish()
     }
 }
 
@@ -87,7 +99,7 @@ impl PackageQuery {
     }
 
     pub fn items_per_page(mut self, items_per_page: u32) -> Self {
-        self.items_per_page = items_per_page;
+        self.items_per_page = items_per_page.clamp(1, 250);
         self
     }
 }
@@ -160,6 +172,8 @@ impl<'a> PaginatedRequest<'a, PackagePage, Vec<Package>, PackagePageQuery<'a>> f
     }
 
     fn callback(&'a self, page: u32, pages: u32) {
-        log::debug!("Callback: Page {} of {}", page, pages);
+        if let Some(ref callback) = &self.callback {
+            callback(page, pages)
+        }
     }
 }

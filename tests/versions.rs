@@ -4,7 +4,7 @@ use anitya::v2::VersionQuery;
 use anitya::ClientBuilder;
 
 #[tokio::test]
-async fn query() {
+async fn version_query() {
     env_logger::builder().filter_level(log::LevelFilter::Debug).init();
 
     let client = ClientBuilder::new("https://release-monitoring.org")

@@ -13,3 +13,6 @@ pub use request::*;
 
 // HTTP API v2
 pub mod v2;
+
+// HTTP API v1
+pub mod v1;

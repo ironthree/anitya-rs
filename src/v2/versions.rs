@@ -7,7 +7,7 @@ use crate::request::{RequestMethod, SingleRequest};
 #[serde(untagged)]
 pub enum FetchVersionsRequest {
     ForId(FetchForId),
-    WithSearch(FetchWithSearch),
+    WithSearch(Box<FetchWithSearch>),
 }
 
 #[derive(Debug, Serialize)]
@@ -16,8 +16,8 @@ pub struct FetchForId {
 }
 
 impl From<FetchForId> for FetchVersionsRequest {
-    fn from(_: FetchForId) -> Self {
-        todo!()
+    fn from(value: FetchForId) -> Self {
+        Self::ForId(value)
     }
 }
 
@@ -55,8 +55,8 @@ pub struct FetchWithSearch {
 }
 
 impl From<FetchWithSearch> for FetchVersionsRequest {
-    fn from(_: FetchWithSearch) -> Self {
-        todo!()
+    fn from(value: FetchWithSearch) -> Self {
+        FetchVersionsRequest::WithSearch(Box::new(value))
     }
 }
 

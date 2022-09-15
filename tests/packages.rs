@@ -4,7 +4,7 @@ use anitya::v2::PackageQuery;
 use anitya::ClientBuilder;
 
 #[tokio::test]
-async fn query() {
+async fn package_query() {
     env_logger::builder().filter_level(log::LevelFilter::Debug).init();
 
     let client = ClientBuilder::new("https://release-monitoring.org")

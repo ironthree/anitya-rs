@@ -1,4 +1,5 @@
 use serde::{Deserialize, Serialize};
+use std::fmt::{Debug, Formatter};
 
 use crate::errors::QueryError;
 use crate::request::{PaginatedRequest, Pagination, RequestMethod, SingleRequest};
@@ -101,11 +102,11 @@ impl SingleRequest<NewProject, NewProject> for NewProjectRequest {
     }
 }
 
-#[derive(Debug)]
 pub struct ProjectQuery {
     ecosystem: Option<String>,
     name: Option<String>,
     items_per_page: u32,
+    callback: Option<Box<dyn Fn(u32, u32)>>,
 }
 
 impl ProjectQuery {
@@ -114,7 +115,18 @@ impl ProjectQuery {
             ecosystem: None,
             name: None,
             items_per_page: DEFAULT_PER_PAGE,
+            callback: None,
         }
+    }
+}
+
+impl Debug for ProjectQuery {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("ProjectQuery")
+            .field("ecosystem", &self.ecosystem)
+            .field("name", &self.name)
+            .field("items_per_page", &self.items_per_page)
+            .finish()
     }
 }
 
@@ -136,7 +148,7 @@ impl ProjectQuery {
     }
 
     pub fn items_per_page(mut self, items_per_page: u32) -> Self {
-        self.items_per_page = items_per_page;
+        self.items_per_page = items_per_page.clamp(1, 250);
         self
     }
 }
@@ -217,6 +229,8 @@ impl<'a> PaginatedRequest<'a, ProjectPage, Vec<Project>, ProjectPageQuery<'a>> f
     }
 
     fn callback(&'a self, page: u32, pages: u32) {
-        log::debug!("Callback: Page {} of {}", page, pages);
+        if let Some(ref callback) = &self.callback {
+            callback(page, pages)
+        }
     }
 }
