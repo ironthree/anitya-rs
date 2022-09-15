@@ -23,6 +23,12 @@ pub struct NewProjectRequest {
     check_release: Option<bool>,
 }
 
+impl NewProjectRequest {
+    pub fn new() -> Self {
+        todo!()
+    }
+}
+
 #[derive(Debug, Deserialize)]
 pub struct NewProject {
     pub backend: String,

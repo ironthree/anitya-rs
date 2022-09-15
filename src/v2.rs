@@ -4,6 +4,9 @@ pub use packages::*;
 mod projects;
 pub use projects::*;
 
+mod versions;
+pub use versions::*;
+
 /// utility function for calculating the number of result pages
 ///
 /// c.f. https://doc.rust-lang.org/std/primitive.u32.html#method.div_ceil

@@ -13,6 +13,12 @@ pub struct NewPackageRequest {
     project_name: String,
 }
 
+impl NewPackageRequest {
+    pub fn new() -> Self {
+        todo!()
+    }
+}
+
 #[derive(Debug, Deserialize)]
 pub struct NewPackage {
     pub distribution: String,

@@ -2,7 +2,7 @@ use serde::de::DeserializeOwned;
 
 use crate::errors::QueryError;
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, Eq, PartialEq)]
 pub enum RequestMethod {
     GET,
     POST,
@@ -17,6 +17,8 @@ where
     fn body(&self) -> Result<Option<String>, QueryError>;
     fn parse(&self, string: &str) -> Result<P, QueryError>;
     fn extract(&self, page: P) -> T;
+
+    // TODO: provide method for mapping status codes to Error instances
 }
 
 pub trait PaginatedRequest<'a, P, T, S>
