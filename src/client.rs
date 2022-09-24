@@ -1,7 +1,7 @@
 use std::fmt::{Debug, Formatter};
 use std::time::Duration;
 
-use reqwest::header::{HeaderMap, HeaderValue, InvalidHeaderValue, AUTHORIZATION, USER_AGENT};
+use reqwest::header::{HeaderMap, HeaderValue, InvalidHeaderValue, ACCEPT, AUTHORIZATION, CONTENT_TYPE, USER_AGENT};
 use reqwest::Client;
 use serde::de::DeserializeOwned;
 use url::Url;
@@ -52,16 +52,17 @@ impl<'a> ClientBuilder<'a> {
         let user_agent = "anitya-rs";
 
         let mut headers = HeaderMap::new();
+        headers.insert(ACCEPT, HeaderValue::from_static("application/json"));
+        headers.insert(CONTENT_TYPE, HeaderValue::from_static("application/json"));
         headers.insert(USER_AGENT, HeaderValue::from_static(user_agent));
 
         let session = reqwest::ClientBuilder::new()
             .default_headers(headers)
             //.timeout()
-            .build()
-            .expect("Failed to initialize the network stack.");
+            .build()?;
 
         let auth_header = if let Some(token) = self.token {
-            let mut value = HeaderValue::from_str(token)?;
+            let mut value = HeaderValue::from_str(&format!("Token {token}"))?;
             value.set_sensitive(true);
             Some(value)
         } else {
@@ -88,6 +89,11 @@ pub enum ClientBuildError {
     InvalidToken {
         #[from]
         error: InvalidHeaderValue,
+    },
+    #[error("Failed to initialize HTTP client: {}", error)]
+    Initialization {
+        #[from]
+        error: reqwest::Error,
     },
 }
 
@@ -136,8 +142,14 @@ impl AnityaClient {
                 headers.insert(AUTHORIZATION, auth_header.clone());
 
                 match request.body()? {
-                    Some(body) => self.session.post(url).body(body).send().await?,
-                    None => self.session.post(url).send().await?,
+                    Some(body) => {
+                        let request = self.session.post(url).headers(headers).body(body).build()?;
+                        self.session.execute(request).await?
+                    },
+                    None => {
+                        let request = self.session.post(url).headers(headers).build()?;
+                        self.session.execute(request).await?
+                    },
                 }
             },
         };

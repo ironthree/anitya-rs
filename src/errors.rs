@@ -21,7 +21,7 @@ pub enum QueryError {
         #[from]
         error: url::ParseError,
     },
-    /// request failed due to networking issues
+    /// request invalid or failed due to networking issues
     #[error("Failed to query anitya server: {}", error)]
     Networking {
         /// error returned by [`reqwest`]
