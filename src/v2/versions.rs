@@ -3,7 +3,7 @@ use serde::{Deserialize, Serialize};
 use crate::errors::QueryError;
 use crate::request::{RequestMethod, SingleRequest};
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Default, Serialize)]
 pub struct ModifyProjectRequest {
     // search parameters for existing projects
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -39,6 +39,46 @@ pub struct ModifyProjectRequest {
 }
 
 impl ModifyProjectRequest {
+    pub fn with_id(id: u32) -> Self {
+        ModifyProjectRequest {
+            id: Some(id),
+            ..Default::default()
+        }
+    }
+
+    pub fn with_name(name: String) -> Self {
+        ModifyProjectRequest {
+            name: Some(name),
+            ..Default::default()
+        }
+    }
+
+    pub fn with_homepage(homepage: String) -> Self {
+        ModifyProjectRequest {
+            homepage: Some(homepage),
+            ..Default::default()
+        }
+    }
+
+    pub fn temporary() -> Self {
+        ModifyProjectRequest::default()
+    }
+
+    pub fn id(mut self, id: u32) -> Self {
+        self.id = Some(id);
+        self
+    }
+
+    pub fn name(mut self, name: String) -> Self {
+        self.name = Some(name);
+        self
+    }
+
+    pub fn homepage(mut self, homepage: String) -> Self {
+        self.homepage = Some(homepage);
+        self
+    }
+
     pub fn backend(mut self, backend: String) -> Self {
         self.backend = Some(backend);
         self
