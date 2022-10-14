@@ -62,7 +62,7 @@ impl<'a> ClientBuilder<'a> {
             .build()?;
 
         let auth_header = if let Some(token) = self.token {
-            let mut value = HeaderValue::from_str(&format!("Token {token}"))?;
+            let mut value = HeaderValue::from_str(&format!("token {token}"))?;
             value.set_sensitive(true);
             Some(value)
         } else {

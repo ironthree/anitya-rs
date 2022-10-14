@@ -132,7 +132,7 @@ pub struct Package {
     pub name: String,
     pub project: String,
     pub ecosystem: String,
-    pub version: String,
+    pub version: Option<String>,
 }
 
 impl<'a> SingleRequest<PackagePage, Vec<Package>> for PackagePageQuery<'a> {
